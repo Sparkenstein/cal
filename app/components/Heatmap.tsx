@@ -84,8 +84,6 @@ export function Heatmap({ data, color }: HeatmapProps) {
     return weeksArray;
   }, [calendarData.days]);
 
-  console.log(weeks);
-
   // Transpose for the typical horizontal scrolling year view (optional)
   // OR standard month view grids.
   // Let's stick to a simple continuous grid for now, maybe "Months" as blocks?
@@ -96,28 +94,27 @@ export function Heatmap({ data, color }: HeatmapProps) {
     <div className="w-full overflow-x-auto pb-4">
       <div className="flex gap-1 min-w-max">
         {/* Days labels (Mon, Wed, Fri) */}
-        <div className="flex flex-col gap-1 pt-6 text-xs text-gray-400 pr-2">
+        <div className="flex flex-col gap-1 pt-4 text-xs text-gray-400 pr-2">
+          <div className="h-3">Sun</div>
           <div className="h-3"></div>
-          <div className="h-3">Mon</div>
           <div className="h-3"></div>
-          <div className="h-3">Wed</div>
           <div className="h-3"></div>
-          <div className="h-3">Fri</div>
           <div className="h-3"></div>
+          <div className="h-3"></div>
+          <div className="h-3">Sat</div>
         </div>
 
         {/* The Grid */}
         <div className="flex gap-1">
           {weeks.map((week, weekIndex) => (
-            <div key={weekIndex} className="flex flex-col gap-1">
+            <div
+              key={weekIndex}
+              className="flex flex-col gap-1 w-3 overflow-visible"
+            >
               {/* Month Label (only if it's the first week of the month) */}
-              <div className="h-3 text-xs text-gray-400 mb-1">
-                {week.some((d) => d.getTime() !== 0 && d.getDate() <= 7) &&
-                  week.find((d) => d.getTime() !== 0 && d.getDate() <= 7) &&
-                  format(
-                    week.find((d) => d.getTime() !== 0 && d.getDate() <= 7)!,
-                    "MMM"
-                  )}
+              <div className="h-3 text-xs text-gray-400 mb-1 whitespace-nowrap">
+                {week.some((d) => d.getDate() === 1) &&
+                  format(week.find((d) => d.getDate() === 1)!, "MMM")}
               </div>
 
               {week.map((day, dayIndex) => {

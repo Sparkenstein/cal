@@ -126,6 +126,39 @@ export async function createActivity(formData: FormData) {
   revalidatePath("/");
 }
 
+export async function updateActivity(activityId: string, formData: FormData) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    throw new Error("Unauthorized");
+  }
+
+  const userId = (session.user as any).id;
+  const name = formData.get("name") as string;
+  const color = (formData.get("color") as string) || "#000000";
+
+  if (!name) throw new Error("Name is required");
+
+  // Verify ownership
+  const activity = await prisma.activity.findUnique({
+    where: { id: activityId },
+  });
+
+  if (!activity || activity.userId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  await prisma.activity.update({
+    where: { id: activityId },
+    data: {
+      name,
+      color,
+    },
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/activities/${activityId}`);
+}
+
 export async function logActivity(activityId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user) {

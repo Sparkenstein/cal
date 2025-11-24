@@ -2,6 +2,7 @@ import { getActivity } from "@/app/actions";
 import { HistoryChart } from "@/app/components/HistoryChart";
 import { LogItem } from "@/app/components/LogItem";
 import { Heatmap } from "@/app/components/Heatmap";
+import { ActivityActions } from "@/app/components/ActivityActions";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -20,32 +21,39 @@ export default async function ActivityPage({ params }: PageProps) {
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-8">
-      <Link 
-        href="/" 
+      <Link
+        href="/"
         className="inline-flex items-center text-sm text-gray-500 hover:text-gray-900 mb-6 transition-colors"
       >
         <ArrowLeft size={16} className="mr-2" />
         Back to Dashboard
       </Link>
 
-      <header className="mb-8">
-        <div className="flex items-center gap-4 mb-2">
-          <div 
-            className="w-4 h-4 rounded-full" 
-            style={{ backgroundColor: activity.color }}
-          />
-          <h1 className="text-3xl font-bold text-gray-900">{activity.name}</h1>
+      <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-4 mb-2">
+            <div
+              className="w-4 h-4 rounded-full"
+              style={{ backgroundColor: activity.color }}
+            />
+            <h1 className="text-3xl font-bold text-gray-900">
+              {activity.name}
+            </h1>
+          </div>
+          <p className="text-gray-500">Total logs: {activity.logs.length}</p>
         </div>
-        <p className="text-gray-500">
-          Total logs: {activity.logs.length}
-        </p>
+        <ActivityActions
+          activityId={activity.id}
+          initialName={activity.name}
+          initialColor={activity.color}
+        />
       </header>
 
       <div className="grid grid-cols-1 gap-8">
         <section className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 overflow-hidden">
           <h2 className="text-lg font-semibold mb-4">Yearly Activity</h2>
           <div className="overflow-x-auto pb-2">
-             <Heatmap data={activity.logs} color={activity.color} />
+            <Heatmap data={activity.logs} color={activity.color} />
           </div>
         </section>
 
@@ -75,4 +83,3 @@ export default async function ActivityPage({ params }: PageProps) {
     </div>
   );
 }
-

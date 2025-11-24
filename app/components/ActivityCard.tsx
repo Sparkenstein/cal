@@ -5,6 +5,8 @@ import { Plus, Check, Activity as ActivityIcon } from 'lucide-react';
 import { useTransition } from 'react';
 import { clsx } from 'clsx';
 
+import Link from 'next/link';
+
 interface ActivityCardProps {
   activity: {
     id: string;
@@ -18,15 +20,17 @@ interface ActivityCardProps {
 export function ActivityCard({ activity }: ActivityCardProps) {
   const [isPending, startTransition] = useTransition();
 
-  const handleLog = () => {
+  const handleLog = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent navigation when clicking log
     startTransition(async () => {
       await logActivity(activity.id);
     });
   };
 
   return (
-    <div 
-      className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-all hover:shadow-md"
+    <Link
+      href={`/activities/${activity.id}`}
+      className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex flex-col gap-4 transition-all hover:shadow-md block"
       style={{ borderTop: `4px solid ${activity.color}` }}
     >
       <div className="flex justify-between items-start">
@@ -58,7 +62,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
           )}
         </button>
       </div>
-    </div>
+    </Link>
   );
 }
 

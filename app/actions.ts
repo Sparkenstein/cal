@@ -75,6 +75,34 @@ export async function getActivities(): Promise<ActivityWithCounts[]> {
   return activitiesWithCounts;
 }
 
+export async function getActivity(activityId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.email) {
+    throw new Error("Unauthorized");
+  }
+
+  const userId = (session.user as any).id;
+
+  const activity = await prisma.activity.findUnique({
+    where: { id: activityId },
+    include: {
+      logs: {
+        orderBy: { occurredAt: "desc" },
+      },
+    },
+  });
+
+  if (!activity) {
+    return null;
+  }
+
+  if (activity.userId !== userId) {
+    throw new Error("Unauthorized");
+  }
+
+  return activity;
+}
+
 export async function createActivity(formData: FormData) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.email) {
@@ -113,6 +141,34 @@ export async function logActivity(activityId: string) {
   });
 
   revalidatePath("/");
+  revalidatePath(`/activities/${activityId}`);
+}
+
+export async function deleteLog(logId: string) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    throw new Error("Unauthorized");
+  }
+
+  const log = await prisma.log.findUnique({
+    where: { id: logId },
+    include: { activity: true },
+  });
+
+  if (!log) {
+    throw new Error("Log not found");
+  }
+
+  if (log.activity.userId !== (session.user as any).id) {
+    throw new Error("Unauthorized");
+  }
+
+  await prisma.log.delete({
+    where: { id: logId },
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/activities/${log.activityId}`);
 }
 
 export async function deleteActivity(activityId: string) {

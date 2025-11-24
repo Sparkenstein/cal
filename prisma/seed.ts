@@ -1,158 +1,109 @@
-import { PrismaClient } from './generated/client';
-import { PrismaPg } from "@prisma/adapter-pg"
-import bcrypt from 'bcryptjs';
+import { PrismaClient } from "./generated/client";
+import bcrypt from "bcryptjs";
+import { subDays } from "date-fns";
+import { PrismaPg } from "@prisma/adapter-pg";
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
+});
 
 async function main() {
-  // Create 5 users with hashed passwords
-  const users = await Promise.all([
-    prisma.user.create({
-      data: {
-        email: 'alice@example.com',
-        name: 'Alice',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'bob@example.com',
-        name: 'Bob',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'charlie@example.com',
-        name: 'Charlie',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'diana@example.com',
-        name: 'Diana',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-    prisma.user.create({
-      data: {
-        email: 'edward@example.com',
-        name: 'Edward',
-        password: await bcrypt.hash('password123', 10),
-      },
-    }),
-  ]);
+  console.log("Starting seed...");
 
-  const userIdMapping = {
-    alice: users[0].id,
-    bob: users[1].id,
-    charlie: users[2].id,
-    diana: users[3].id,
-    edward: users[4].id,
-  };
+  // Cleanup existing data
+  await prisma.log.deleteMany();
+  await prisma.activity.deleteMany();
+  await prisma.user.deleteMany();
 
-  // Create 15 posts distributed among users
-  await prisma.post.createMany({
-    data: [
-      // Alice's posts
-      {
-        title: 'Getting Started with TypeScript and Prisma',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Fusce id erat a lorem tincidunt ultricies. Vivamus porta bibendum nulla vel accumsan.',
-        published: true,
-        authorId: userIdMapping.alice
-      },
-      {
-        title: 'How ORMs Simplify Complex Queries',
-        content: 'Duis sagittis urna ut sapien tristique convallis. Aenean vel ligula felis. Phasellus bibendum sem at elit dictum volutpat.',
-        published: false,
-        authorId: userIdMapping.alice
-      },
-
-      // Bob's posts
-      {
-        title: 'Mastering Prisma: Efficient Database Migrations',
-        content: 'Ut ullamcorper nec erat id auctor. Nullam nec ligula in ex feugiat tincidunt. Cras accumsan vehicula tortor ut eleifend.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'Best Practices for Type Safety in ORMs',
-        content: 'Aliquam erat volutpat. Suspendisse potenti. Maecenas fringilla elit vel eros laoreet, et tempor sapien vulputate.',
-        published: true,
-        authorId: userIdMapping.bob
-      },
-      {
-        title: 'TypeScript Utility Types for Database Models',
-        content: 'Donec ac magna facilisis, vestibulum ligula at, elementum nisl. Morbi volutpat eget velit eu egestas.',
-        published: false,
-        authorId: userIdMapping.bob
-      },
-
-      // Charlie's posts (no posts for Charlie)
-
-      // Diana's posts
-      {
-        title: 'Exploring Database Indexes and Their Performance Impact',
-        content: 'Vivamus ac velit tincidunt, sollicitudin erat quis, fringilla enim. Aenean posuere est a risus placerat suscipit.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Choosing the Right Database for Your TypeScript Project',
-        content: 'Sed vel suscipit lorem. Duis et arcu consequat, sagittis justo quis, pellentesque risus. Curabitur sed consequat est.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Designing Scalable Schemas with Prisma',
-        content: 'Phasellus ut erat nec elit ultricies egestas. Vestibulum rhoncus urna eget magna varius pharetra.',
-        published: true,
-        authorId: userIdMapping.diana
-      },
-      {
-        title: 'Handling Relations Between Models in ORMs',
-        content: 'Integer luctus ac augue at tristique. Curabitur varius nisl vitae mi fringilla, vel tincidunt nunc dictum.',
-        published: false,
-        authorId: userIdMapping.diana
-      },
-
-      // Edward's posts
-      {
-        title: 'Why TypeORM Still Has Its Place in 2025',
-        content: 'Morbi non arcu nec velit cursus feugiat sit amet sit amet mi. Etiam porttitor ligula id sem molestie, in tempor arcu bibendum.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'NoSQL vs SQL: The Definitive Guide for Developers',
-        content: 'Suspendisse a ligula sit amet risus ullamcorper tincidunt. Curabitur tincidunt, sapien id fringilla auctor, risus libero gravida odio, nec volutpat libero orci nec lorem.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Optimizing Queries with Prisma\'s Select and Include',
-        content: 'Proin vel diam vel nisi facilisis malesuada. Sed vitae diam nec magna mollis commodo a vitae nunc.',
-        published: false,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'PostgreSQL Optimizations Every Developer Should Know',
-        content: 'Nullam mollis quam sit amet lacus interdum, at suscipit libero pellentesque. Suspendisse in mi vitae magna finibus pretium.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-      {
-        title: 'Scaling Applications with Partitioned Tables in PostgreSQL',
-        content: 'Cras vitae tortor in mauris tristique elementum non id ipsum. Nunc vitae pulvinar purus.',
-        published: true,
-        authorId: userIdMapping.edward
-      },
-    ],
+  // Create Test User
+  const hashedPassword = await bcrypt.hash("password", 10);
+  const user = await prisma.user.create({
+    data: {
+      email: "test@example.com",
+      name: "Test User",
+      password: hashedPassword,
+    },
   });
 
-  console.log('Seeding completed.');
+  console.log(`Created user: ${user.email}`);
+
+  // Define Activities
+  const activitiesData = [
+    { name: "Gym Workout", color: "#ef4444" }, // Red
+    { name: "Read Book", color: "#3b82f6" }, // Blue
+    { name: "Drank Water", color: "#10b981" }, // Emerald
+    { name: "Code Side Project", color: "#8b5cf6" }, // Violet
+    { name: "Meditation", color: "#f59e0b" }, // Amber
+  ];
+
+  for (const activityData of activitiesData) {
+    const activity = await prisma.activity.create({
+      data: {
+        ...activityData,
+        userId: user.id,
+      },
+    });
+
+    console.log(`Created activity: ${activity.name}`);
+
+    // Generate logs for the last 365 days
+    // We'll vary the frequency to make it look realistic
+    const logsData = [];
+    for (let i = 0; i < 365; i++) {
+      const date = subDays(new Date(), i);
+      const probability = Math.random();
+
+      // Simulate different habits
+      let shouldLog = false;
+      let count = 1;
+
+      if (activity.name === "Gym Workout") {
+        // Gym 3-4 times a week (approx 50% chance), rarely twice a day
+        shouldLog = probability > 0.5;
+      } else if (activity.name === "Read Book") {
+        // Read almost every day
+        shouldLog = probability > 0.2;
+      } else if (activity.name === "Drank Water") {
+        // Multiple times a day
+        shouldLog = true;
+        count = Math.floor(Math.random() * 5) + 1; // 1-5 times
+      } else if (activity.name === "Code Side Project") {
+        // Weekends mostly or sporadic
+        const isWeekend = date.getDay() === 0 || date.getDay() === 6;
+        shouldLog = isWeekend ? probability > 0.3 : probability > 0.8;
+      } else {
+        // Random sporadic
+        shouldLog = probability > 0.7;
+      }
+
+      if (shouldLog) {
+        // Create 'count' number of logs for this day
+        for (let c = 0; c < count; c++) {
+          // Randomize time within the day
+          const logDate = new Date(date);
+          logDate.setHours(
+            Math.floor(Math.random() * 24),
+            Math.floor(Math.random() * 60)
+          );
+
+          logsData.push({
+            activityId: activity.id,
+            count: 1,
+            occurredAt: logDate,
+          });
+        }
+      }
+    }
+
+    if (logsData.length > 0) {
+      await prisma.log.createMany({
+        data: logsData,
+      });
+      console.log(`  - Generated ${logsData.length} logs`);
+    }
+  }
+
+  console.log("Seeding completed.");
 }
 
 main()
